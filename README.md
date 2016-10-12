@@ -1,2 +1,4 @@
 # DP_assessment
-Clean and process network survey data
+Input survey
+Clean data and process into network files
+Run analysis scripts and output tables and charts
