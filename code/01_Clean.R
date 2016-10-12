@@ -30,15 +30,15 @@
 #  IMPORT THE DATA
 
 # Load kobo_import.csv file into R as a data.frame
-kobo_import <- read.csv("data/kobo_import.csv", header = TRUE, stringsAsFactors = FALSE)
+kobo_import <- read.csv("../not_shared/data/kobo_import.csv", header = TRUE, stringsAsFactors = FALSE)
 
 # Load partner_list_cleaned_jordan.csv file into R as a data.frame
-partner_list <- read.csv("data/partner_list_cleaned_jordan.csv", header = TRUE, stringsAsFactors = FALSE)
+partner_list <- read.csv("../not_shared/data/partner_list_cleaned_jordan.csv", header = TRUE, stringsAsFactors = FALSE)
 
 #  CREATE THE TWO OUTPUT DATA.FRAMES
 
 # Create a data.frame to save the cleaned NODE values to
-nodes <- data.frame(matrix(ncol = 35, nrow = nrow(kobo_import)))
+nodes <- data.frame(matrix(ncol = 33, nrow = nrow(kobo_import)))
 column_names_nodes <- c(
               "Id",
               "Label",
@@ -72,9 +72,7 @@ column_names_nodes <- c(
               "Format.Agree_with_statement.Happy_with_format",
               "Format.Agree_with_statement.Happy_with_turnaround",
               "Format.Agree_with_statement.Happy_with_workflow",
-              "Format.Agree_with_statement.Happy_with_accuracy",
-              "Misc.Participant_name",
-              "Misc.Participant_email"
+              "Format.Agree_with_statement.Happy_with_accuracy"
 )
 colnames(nodes) <- column_names_nodes
 # Remove the column name vector
@@ -94,16 +92,18 @@ colnames(edges) <- column_names_edges
 rm(column_names_edges)
 
 # Create a data.frame to save the COMMENTS to
-comments <- data.frame(matrix(ncol = 4))
+comments <- data.frame(matrix(ncol = 6, nrow = nrow(kobo_import)))
 column_names_comments <- c( 
                 "Id",
                 "Label",
                 "Organisation_name",
+                "Participant_name",
+                "Email_address",
                 "Comment")
 colnames(comments) <- column_names_comments
 # Remove the column name vector
-rm(column_names_comments
-   )
+rm(column_names_comments)
+
 #  COPY THE DATA TO THE NODES DATA.FRAME
 
 # Direct copying from one data.frame to another
@@ -140,9 +140,6 @@ nodes$Format.Agree_with_statement.Happy_with_turnaround <- kobo_import$group_dia
 nodes$Format.Agree_with_statement.Happy_with_workflow <- kobo_import$group_diagnostics.diagnostics_statements_header.diagnostics_statements_workflow
 nodes$Format.Agree_with_statement.Happy_with_accuracy <- kobo_import$group_diagnostics.diagnostics_statements_header.diagnostics_statements_accurate
 
-nodes$Misc.Participant_name <- kobo_import$group_participation_agreement.participation_name
-nodes$Misc.Participant_email <- kobo_import$group_participation_agreement.participation_email
-
 # Retrive the correct ORGANISATION ACRONYMS and NAMES from the partner_list table
 nodes$Label <- partner_list$Country_acronym[match(nodes$Id,partner_list$ID)]
 nodes$Organisation_name <- partner_list$Country_name[match(nodes$Id,partner_list$ID)]
@@ -150,9 +147,14 @@ nodes$Organisation_name <- partner_list$Country_name[match(nodes$Id,partner_list
 #  CALCULATE THE DATA PROTECTION INDICATORS
 
 # Calculate ORGANISATIONAL MEASURES values
+#Change "n/a" to NA
+kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR[kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR == "n/a"] <- NA
+#Change "n/a" to 0
+kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR[is.na(kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR)] <- 0
+#Calculate rating
 nodes$Format.Data_protection.Organisational_measures <- (
-  kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy * 
-    kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR
+  as.numeric(kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy) * 
+    as.numeric(kobo_import$group_data_protection.group_organisational_measures.DP_OM_Have_policy_yes_match_UNHCR)
 ) / 3
 
 # Calculate PHYSICAL MEASURES values
@@ -177,35 +179,34 @@ nodes$Format.Data_protection.Technical_measures <- ((
 ) / 16
 
 # Calculate ONWARD DATA SHARING MEASURES values
-# nodes$Format.Data_protection.Onward_sharing_measures <- ((
-#  kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_agreements_third_parties
-#  kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_third_party_screening
-#  kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_partner_rating  
-# ))
-
 nodes$Format.Data_protection.Onward_sharing_measures <- 
   ifelse (kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_agreements_third_parties == "N/A", "",
              ifelse (kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_agreements_third_parties == 0, 0,
-                     ((kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_agreements_third_parties * 
-                         kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_third_party_screening) * 
-                        kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_partner_rating) / 4
-             )
-)
-
-
+                     (as.numeric(kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_agreements_third_parties) * 
+                      as.numeric(kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_third_party_screening) * 
+                      as.numeric(kobo_import$group_data_protection.group_onward_data_sharing.DP_ODS_partner_rating)) / 4 
+              )
+          )
+nodes$Format.Data_protection.Onward_sharing_measures <- as.numeric(nodes$Format.Data_protection.Onward_sharing_measures)
 
 # Calculate final DATA PROTECTION RATING value
-# If there is no value in the onward data sharing then dont include in mean
-# kobo_cleaned_nodes$Format.Data_protection.Data_protection_rating <- average
+nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,14:17], na.rm=TRUE)
 
 #  COPY THE COMMENTS TO THE COMMENTS DATA.FRAME
+
+comments$Id <- kobo_import$group_organisational_ties.Org_ties_Source_Organisation
+comments$Label <- partner_list$Country_acronym[match(comments$Id,partner_list$ID)]
+comments$Organisation_name <- partner_list$Country_name[match(comments$Id,partner_list$ID)]
+comments$Participant_name <- kobo_import$group_participation_agreement.participation_name
+comments$Email_address <- kobo_import$group_participation_agreement.participation_email
+comments$Comment <- kobo_import$group_comments.comments
 
 #  STRIP OUT ORGANISATIONS INTO THE EDGES DATA.FRAME
 
 #  SAVE THE DATA.FRAMES AS FILES FOR ANALYSIS
 
-# write.csv(nodes, file = "output/nodes.csv")
-# write.csv(edges, file = "output/edges.csv")
-# write.csv(comments, file = "output/comments.csv")
+write.csv(nodes, file = "../not_shared/output/nodes.csv")
+# write.csv(edges, file = "../not_shared/output/edges.csv")
+write.csv(comments, file = "../not_shared/output/comments.csv")
 
 #  DROP USED DATA FRAMES
