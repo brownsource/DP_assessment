@@ -9,8 +9,8 @@
 #  - Copy the data to the nodes data.frame
 #  - Calculate data protection indicators
 #  - Strip out target organisations into the edges data.frame
-#  - Remove unnecessary columns
 #  - Save the data.frames as files for analysis
+#  - Drop old data frames
 # OUTPUTS: 
 #  - output/jordan_nodes.csv
 #  - output/jordan_edges.csv
@@ -77,6 +77,8 @@ column_names_nodes <- c(
               "Misc.Participant_email"
 )
 colnames(nodes) <- column_names_nodes
+# Remove the column name vector
+rm(column_names_nodes)
 
 # Create a data.frame to save the cleaned EDGE values to
 edges <- data.frame(matrix(ncol = 5))
@@ -88,6 +90,8 @@ column_names_edges <- c(
               "Weight"
 )
 colnames(edges) <- column_names_edges
+# Remove the column name vector
+rm(column_names_edges)
 
 # Create a data.frame to save the COMMENTS to
 comments <- data.frame(matrix(ncol = 4))
@@ -97,7 +101,9 @@ column_names_comments <- c(
                 "Organisation_name",
                 "Comment")
 colnames(comments) <- column_names_comments
-
+# Remove the column name vector
+rm(column_names_comments
+   )
 #  COPY THE DATA TO THE NODES DATA.FRAME
 
 # Direct copying from one data.frame to another
@@ -193,12 +199,13 @@ nodes$Format.Data_protection.Onward_sharing_measures <-
 # kobo_cleaned_nodes$Format.Data_protection.Data_protection_rating <- average
 
 #  COPY THE COMMENTS TO THE COMMENTS DATA.FRAME
-#  STRIP OUT ORGANISATIONS INTO THE EDGES DATA.FRAME
-#  REMOVE UNNECESSARY COLUMNS
 
+#  STRIP OUT ORGANISATIONS INTO THE EDGES DATA.FRAME
 
 #  SAVE THE DATA.FRAMES AS FILES FOR ANALYSIS
 
 # write.csv(nodes, file = "output/nodes.csv")
 # write.csv(edges, file = "output/edges.csv")
 # write.csv(comments, file = "output/comments.csv")
+
+#  DROP USED DATA FRAMES

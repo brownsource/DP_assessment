@@ -1,12 +1,8 @@
-A <- c(1,1,"N/A",0)
-B <- c(0,1,"n/a","n/a")
-C <- c(3,3,"n/a","n/a")
+#A <- c(1,1,0,1)
+#B <- c(3,3,"n/a",3)
+#DF <- data.frame(A,B)
+#C <- DF$A * DF$B
 
-
-DF <- data.frame(A,B,C,D)
-
-D <- ifelse (A == "N/A", "",
-            ifelse (A == 0, 0,
-                   ((A * B) * C) / 4
-                   )
-            )
+foo <- data.frame("day"= c(1, 3, 5, 7), "od" = c(0.1, "N/A", 0.4, 0.8)) 
+NAs <- foo == "N/A"
+foo[is.na(NAs)] <- 0
