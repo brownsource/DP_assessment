@@ -224,10 +224,13 @@ for (i in 1:nrow(kobo_import)){
             edges <- rbind(edges, EdgeFrame)
   }
 }
-#  SAVE THE DATA.FRAMES AS FILES FOR ANALYSIS
+rm(EdgeFrame)
 
+#  SAVE THE DATA.FRAMES AS FILES FOR ANALYSIS
 write.csv(nodes, file = "../not_shared/output/nodes.csv")
 write.csv(edges, file = "../not_shared/output/edges.csv")
 write.csv(comments, file = "../not_shared/output/comments.csv")
 
 #  DROP USED DATA FRAMES
+# rm(i, SourceOrgs, TargetOrgs)
+# rm(comments, edges, kobo_import, nodes, partner_list)
