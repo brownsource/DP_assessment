@@ -88,6 +88,7 @@ column_names_edges <- c(
               "Weight"
 )
 colnames(edges) <- column_names_edges
+edges <- edges[-c(1), ]
 # Remove the column name vector
 rm(column_names_edges)
 
@@ -201,12 +202,35 @@ comments$Participant_name <- kobo_import$group_participation_agreement.participa
 comments$Email_address <- kobo_import$group_participation_agreement.participation_email
 comments$Comment <- kobo_import$group_comments.comments
 
-#  STRIP OUT ORGANISATIONS INTO THE EDGES DATA.FRAME
+# STRIP OUT ORGANISATIONS INTO THE EDGES DATA.FRAME
+
+# Repeat for each row in kobo_import
+for (i in 1:nrow(kobo_import)){
+  # If the value of the cell is TRUE
+  TargetOrgs <- c(ifelse (kobo_import[i,16:76] == "True",
+             # Extract the Organisation ID from the header
+             as.numeric(substr(c(colnames(kobo_import[16:76])), 61, 64)),
+             # Or write NA
+             NA))
+  # Remove the NA
+  TargetOrgs <- TargetOrgs[!is.na(TargetOrgs)]
+  # If thelength of TargetOrgs is NOT 0 then Transpose the Organisatonis to the Edges table with the Source ID as the current Row's Organisation
+  if(length(TargetOrgs) != 0) { 
+            # Create a vector with the source organisation
+            SourceOrgs <- rep(kobo_import[i,1], length(TargetOrgs))
+            # Create a vector with target organisations and some other fixed variables
+            EdgeFrame <-data.frame(Source = SourceOrgs, Target = TargetOrgs, Label = NA, Type = "Undirected", Weight = 1)
+            # Append the values to the edges table
+            edges <- rbind(edges, EdgeFrame)
+  }
+}
+rm(EdgeFrame)
 
 #  SAVE THE DATA.FRAMES AS FILES FOR ANALYSIS
-
 write.csv(nodes, file = "../not_shared/output/nodes.csv")
-# write.csv(edges, file = "../not_shared/output/edges.csv")
+write.csv(edges, file = "../not_shared/output/edges.csv")
 write.csv(comments, file = "../not_shared/output/comments.csv")
 
 #  DROP USED DATA FRAMES
+# rm(i, SourceOrgs, TargetOrgs)
+# rm(comments, edges, kobo_import, nodes, partner_list)
