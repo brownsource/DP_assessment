@@ -27,7 +27,7 @@
 #    -  group_organisational_ties/Org_ties_Target_Organisations_Transfer_other
 # 5. Update the "partner_list.csv" file with any new organisations
 
-# install.packages("dplyr")
+#install.packages("dplyr")
 library(dplyr)
 
 #  IMPORT THE DATA
