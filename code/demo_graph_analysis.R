@@ -1,38 +1,72 @@
 rm(list = ls()) # Remove all the objects we created so far.
 install.packages("igraph") # Install the iGraph package
 library(igraph) # Load the igraph package
+help("plot.igraph") # See this for ideas on how to change the formatting
 
+# Load in the data table
 graph_edges <- data.frame(read.csv("../not_shared/data/demo_edges.csv", header = TRUE, stringsAsFactors = FALSE))
 graph_nodes <- data.frame(read.csv("../not_shared/data/demo_nodes.csv", header = TRUE, stringsAsFactors = FALSE))
 
+# Create a graph data frame from the edges table
 g1 <- graph.data.frame(
   graph_edges[,1:2],
-  directed = FALSE
+    directed = FALSE
 )
 
+# Create a demo plot
 plot(g1, 
-     edge.arrow.size=.5,
-     vertex.color="gold",
-     vertex.size=5,
-     vertex.frame.color="gray",
+     vertex.size=5, 
+     vertex.label=V(g1)$name,
+     vertex.color="blue", 
+     vertex.frame.color="blue",
      vertex.label.color="black",
-     vertex.label.cex=0.8,
-     vertex.label.dist=20000,
-     edge.curved=0.0)
+     vertex.label.cex=0.8, 
+     vertex.label.dist=1,
+     vertex.label=TRUE,
+     vertex.label.font=.001,
+     
+     edge.curved=0.0,
+     edge.arrow.size=0.01,
+     edge.color="grey",  
 
+     rescale=TRUE,
+     add=FALSE)
+
+#Lists the edges and vertices
 E(g1)
 V(g1)
 
-g1 <- set_graph_attr(g1, "name", "NAME")
-g1 <- set_graph_attr(g1, "label", "LABEL")
-graph_attr_names(g1)
+# Assign Labels and names to the graph
 
 
-V(g1)$name <- graph_nodes$Label[match(V(g1)$id, nodes$ID)]
+# Create a colour palatte
+
+# Filter certain nodes / edges
 
 
+# Calculate:
+# Density
+# Vertex degree
+# View as histogram
+# Degree distribution
+# View as histogram
+# Power law
+# Graph connectivity
+# Shortest patth
+# Diameter
+# Average path length
+# Print an adjacency matrix
+# Degree centrality, Closeness, Betweennes, Eigenvector
+# Prestige
 
 
-# <- partner_list$Name[match(nodes$Id,partner_list$ID)]
+from <- c(graph_edges[,1])
+to <- c(graph_edges[,2])
+structure <- data.frame("from" = from, "to" = to)
+g <- graph.data.frame(structure)
+#V(g)$label <- names
 
-g1[]
+names <- data.frame(graph_nodes[,1:2])
+V(g)$label <- names[V(g)$name]
+plot(g)
+
