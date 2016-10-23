@@ -28,13 +28,38 @@ plot(g1,
      edge.curved=0.0,
      edge.arrow.size=0.01,
      edge.color="grey",  
-
+     
      rescale=TRUE,
      add=FALSE)
 
+# Create a graph data from both tables
+g2 <- graph_from_data_frame(graph_edges, directed = FALSE, vertices = graph_nodes)
+print(g2, e=TRUE, v=TRUE)
+plot(g2, 
+     vertex.label=V(g2)$label,
+     vertex.size=5,
+     vertex.color="blue", 
+     vertex.frame.color="blue",
+     vertex.label.color="black",
+     vertex.label.cex=0.8, 
+     vertex.label.dist=1,
+     vertex.label=TRUE,
+     vertex.label.font=.001,
+     
+     edge.curved=0.0,
+     edge.arrow.size=0.01,
+     edge.color="grey",  
+     
+     rescale=TRUE,
+     add=FALSE)
+
+
+
+
+
 #Lists the edges and vertices
-E(g1)
-V(g1)
+E(g2)
+V(g2)
 
 # Assign Labels and names to the graph
 
