@@ -1,69 +1,94 @@
 # CLEAR WORKSPACE
 #
 # Remove all the objects we created so far.
-
 rm(list = ls()) # Remove all the objects we created so far.
 
 # LIBRARIES
-#
-# Key packages 
-# Install those now if you do not have the latest versions. 
-# (please do NOT load them yet!)
+# install.packages("network") 
+# install.packages("sna")
+# install.packages("visNetwork")
+# install.packages("ndtv", dependencies=T)
+# install.packages("png")
+# install.packages("animation")
+# install.packages("maps")
+# install.packages("geosphere")
 
-install.packages("igraph") 
-install.packages("network") 
-install.packages("sna")
-install.packages("visNetwork")
-install.packages("ndtv", dependencies=T)
-install.packages("RColorBrewer")
-install.packages("extrafont")
-install.packages("png")
-install.packages("animation")
-install.packages("maps")
-install.packages("geosphere")
-
-# UNHCR MAIN COLOUR THEME
-# Additional colour alternatives (http://www.colorhexa.com/) or (http://colorbrewer2.org/)
-# 
+# ESTABLISH COLOUR SCHEME
+# install.packages("RColorBrewer")
+library('RColorBrewer')
+# display.brewer.pal(5, "Dark2") # Example contrasting dark colours
+# UNHCR colour scheme for three blues
 # MAIN  HEX = #005EB8 = rgb(  0, 94,184) = WEB SAFE = 0066cc
 # LIGHT HEX = #1188FB = rgb( 17,136,251) = WEB SAFE = 0099ff
 # DARK  HEX = #00498F = rgb(  0, 73,143) = WEB SAFE = 003399
+# Additional colour alternatives (http://www.colorhexa.com/) or (http://colorbrewer2.org/)
 
 # INSTALL FONTS
-#
-# library('extrafont')
-# font_import("Arial") # FIND AND INSTALL HELVITICA NUE
-# fonts() # See what font families are available to you now.
-# loadfonts(device = "win") # use device = "pdf" for pdf plot output. 
+# install.packages("sysfonts")
+# install.packages("showtext")
+library(sysfonts)
+library(showtext)
+font.add("arial", "arial.ttf") # Ideally this would be Helvetica Neue
+# Some code to test that the font is working
+## pdf("output/test.pdf") 
+## showtext.begin() 
+## par(family = "arial") 
+## plot(1, main = "This font is arial", type = "n") 
+## text(1, 1, "Some Text", cex = 5) 
+## showtext.end() 
+## dev.off() 
 
 # LOAD IN THE DATA
-#
 graph_edges <- data.frame(read.csv("../not_shared/data/regional_partners_edges.csv", header = TRUE, stringsAsFactors = FALSE))
 graph_nodes <- data.frame(read.csv("../not_shared/data/regional_partners_nodes.csv", header = TRUE, stringsAsFactors = FALSE))
 
 # CREATE AN IGRAPH OBJECT
-#
+# Install.packages("igraph")
 library("igraph")
+# Load the graph object
 network_all <- graph_from_data_frame(d=graph_edges, vertices = graph_nodes, directed = F)
-
-# DISPLAY A VISUALISATION
-#
 # Remove loops
 network_all <- simplify(network_all, remove.multiple = F, remove.loops = T)
+# Calculate the degree for each node
+deg <- degree(network_all, mode="all")
+# Create a node size within a range
+V(network_all)$size <- (deg-min(deg))/(max(deg)-min(deg)) * (25-5)+5
+V(network_all)$label.cex  <- (deg-min(deg))/(max(deg)-min(deg)) * (1-0.5)+0.5
+
+#colrs <- c("gray50", "tomato", "gold")
+#V(net)$color <- colrs[V(net)$media.type]
+
+graph_layout <- layout_with_fr(network_all, 
+                               coords = NULL, 
+                               dim = 2, 
+                               niter = 1000,
+                               start.temp = sqrt(vcount(network_all)), 
+                               grid = c("auto", "grid", "nogrid"),
+                               weights = NULL, 
+                               minx = NULL, 
+                               maxx = NULL, 
+                               miny = NULL, 
+                               maxy = NULL,
+                               minz = NULL, 
+                               maxz = NULL)
+
+
+
+# DISPLAY A VISUALISATION
 par(bg="white") # Set the background
 plot(network_all,
-     layout=layout_with_fr(network_all)*20000,
-     vertex.color=rgb(17,136,251, maxColorValue = 255),
-     vertex.frame.color=NA,
-     vertex.shape="circle",
-     vertex.size=5,
-     vertex.label=V(network_all)$label, # Uses the label field
-     #vertex.label.family="Arial",
-     vertex.label.font=1, # 1 plain, 2 bold, 3, italic, 4 bold italic, 5 symbol
-     vertex.label.cex=0.5, # Font size in proportion to node
-     vertex.label.dist=0,
-     vertex.label.degree=0,
-     edge.color="grey40",
+     layout = graph_layout,
+     vertex.color = rgb(17,136,251, maxColorValue = 255),
+     vertex.frame.color = rgb(255,255,255, maxColorValue = 255),
+     vertex.shape = "circle",
+     vertex.size = network_all$size,
+     vertex.label = V(network_all)$acronym, # Uses the label field
+     vertex.label.family = "Arial",
+     vertex.label.font = 1, # 1 plain, 2 bold, 3, italic, 4 bold italic, 5 symbol
+     vertex.label.cex = V(network_all)$label.cex, #0.5, # Font size in proportion to node
+     vertex.label.dist = 0,
+     vertex.label.degree = 0,
+     edge.color="grey80",
      edge.width=1,
      #edge.arrow.size=NA)
      #edge.arrow.width=NA
@@ -73,19 +98,33 @@ plot(network_all,
      #edge.label.font=NA,
      #edge.label.cex=NA,
      #edge.curved=0 # Edge curvature, range 0-1 (FALSE sets it to 0, TRUE to 0.5)
-     margin=0.2, #Empty space margins around the plot, vector with length 4
-     frame=FALSE,
-     main="Regional map of organisations in MENA",
-     sub="Source: 3RP applications and other"
-     #asp # Numeric, the aspect ratio of a plot (y/x).
-     #palette # A color palette to use for vertex color
-     #rescale # Whether to rescale coordinates to [-1,1]. Default is TRUE
+     margin = 0, #Empty space margins around the plot, vector with length 4
+     frame = FALSE # Option to add a frame around the chart
+     #main = "Chart title", # Adds a chart title
+     #sub = "Chart subtitle", # Adds a subtitle
+     #asp = # Numeric, the aspect ratio of a plot (y/x).
+     #palette = # A color palette to use for vertex color
+     #rescale = # Whether to rescale coordinates to [-1,1]. Default is TRUE
      )
 
-library('animation')
-ani.options("convert") # Check that the package knows where to find ImageMagick
-# If it doesn't know where to find it, give it the correct path for your system.
-ani.options(convert="C:/Program Files/ImageMagick-6.8.8-Q16/convert.exe") 
+
+
+library('visNetwork') 
+visNetwork(graph_nodes, graph_edges, width="100%", height="400px", main="MENA regional partners")
+
+nodes$shape <- "dot"  
+nodes$shadow <- TRUE # Nodes will drop shadow
+nodes$title <- nodes$media # Text on click
+nodes$label <- nodes$type.label # Node label
+#nodes$size <- nodes$audience.size # Node size
+nodes$borderWidth <- 2 # Node border width
+
+#nodes$color.background <- c("slategrey", "tomato", "gold")[graph_nodes$type]
+nodes$color.border <- "black"
+nodes$color.highlight.background <- "orange"
+nodes$color.highlight.border <- "darkred"
+
+visNetwork(graph_nodes, graph_edges)
 
 
 
