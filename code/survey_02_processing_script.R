@@ -27,6 +27,8 @@ survey_network <- graph_from_data_frame(d=survey_edges, vertices = survey_nodes,
 
 #CALCLUATE GENERAL NETWORK STATS
 network_statistics <- data.frame(Graph=NA,
+                                 Count_nodes=NA,
+                                 Count_edges=NA,
                                  Density=NA,
                                  Centrality_out=NA,
                                  Centrality_in=NA,
@@ -36,6 +38,11 @@ network_statistics <- data.frame(Graph=NA,
                                  Diameter=NA)
 #set Graph name
 network_statistics$Graph <- "ALL"
+#Count graph nodes
+vcount(survey_network)
+network_statistics$Count_nodes <- vcount(survey_network)
+#Count graph edges
+network_statistics$Count_edges <-ecount(survey_network)
 # Density
 network_statistics$Density <- graph.density(survey_network, loops = FALSE)
 # Average outbound degree centrality
@@ -50,6 +57,27 @@ network_statistics$Shortest_path <- NA
 network_statistics$Avg_path_length <- NA
 # Diameter
 network_statistics$Diameter <- diameter(survey_network, directed=TRUE)
+
+#CREATE A VERTEX OF FILTERNAMES
+filter_names <- c("Filter.Sector.Basic_needs",
+                  "Filter.Sector.Education",
+                  "Filter.Sector.Food_security",
+                  "Filter.Sector.Health",
+                  "Filter.Sector.Livelihoods",
+                  "Filter.Sector.Protection",
+                  "Filter.Sector.Shelter",
+                  "Filter.Sector.WASH")
+
+for (i in 1:8) {
+  print(filter_names[i])
+  network_statistics <- cbind(network_statistics, filter_names[i])
+}
+ 
+
+substr(filter_names, 15, nchar(filter_names[1]))
+ 
+#THIS FILTERS... NEED TO INCLUDE IN THE LOOP
+temp <- induced.subgraph(survey_network, which(V(survey_network)$Filter.Sector.Basic_needs==TRUE))
 
 
 #CALCLUATE NODE STATS
