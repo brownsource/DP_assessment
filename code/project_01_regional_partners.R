@@ -1,6 +1,6 @@
 ####Script to display all of the partners listed in the region
 
-#Remove all the objects created so far
+#CLEAR WORKSPACE
 rm(list = ls()) # Remove all the objects we created so far.
 
 #INITIALISING R
@@ -31,6 +31,8 @@ graph_nodes <- data.frame(read.csv("../not_shared/data/regional_partners_nodes.c
 
 #Create an igraph object
 network_all <- graph_from_data_frame(d=graph_edges, vertices = graph_nodes, directed = F)
+E(network_all)$from <- graph_edges$from
+E(network_all)$to <- graph_edges$to
 
 #SET THE LAYOUT PARAMETERS
 layout1 <- layout.forceatlas2(network_all, 
