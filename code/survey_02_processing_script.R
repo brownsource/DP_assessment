@@ -7,8 +7,9 @@ rm(list = ls()) # Remove all the objects we created so far.
 #Check to see if required packages are present
 if(!require(igraph)){
   install.packages("igraph")
-  library(igraph)
 }
+library(igraph)
+
 if(!require(devtools)){
   install.packages("devtools")
 }
@@ -25,8 +26,8 @@ survey_nodes <- data.frame(read.csv("../not_shared/output/nodes.csv", header = T
 #Create an igraph object
 survey_network <- graph_from_data_frame(d=survey_edges, vertices = survey_nodes, directed = T)
 
-#CALCLUATE GENERAL NETWORK STATS
-network_statistics <- data.frame(Graph=NA,
+## CREATE SECTOR LEVEL NETWORK STATISTICS TABLE
+network_statistics_sector <- data.frame(Graph=NA,
                                  Count_nodes=NA,
                                  Count_edges=NA,
                                  Density=NA,
@@ -36,6 +37,10 @@ network_statistics <- data.frame(Graph=NA,
                                  Shortest_path=NA,
                                  Avg_path_length=NA,
                                  Diameter=NA)
+
+
+## CALCLUATE GENERAL NETWORK STATS
+
 #set Graph name
 network_statistics$Graph <- "ALL"
 #Count graph nodes
@@ -67,6 +72,10 @@ filter_names <- c("Filter.Sector.Basic_needs",
                   "Filter.Sector.Protection",
                   "Filter.Sector.Shelter",
                   "Filter.Sector.WASH")
+filter_names[3]
+
+
+network_statistics <- cbind(network_statistics, filter_names[4])
 
 for (i in 1:8) {
   print(filter_names[i])
