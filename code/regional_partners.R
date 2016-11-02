@@ -507,7 +507,7 @@ E(lebanon_dsa_partners)$margin <- 1
 #Calculate the degree for each node
 lebanon_dsa_partners_degree <- degree(lebanon_dsa_partners, mode="all")
 #Fix dynamic size-based parameters
-V(lebanon_dsa_partners)$size <- (lebanon_dsa_partners_degree - min(lebanon_dsa_partners_degree)) / (max(lebanon_dsa_partners_degree) - min(lebanon_dsa_partners_degree)) * (20-10)+10
+V(lebanon_dsa_partners)$size <- (lebanon_dsa_partners_degree - min(lebanon_dsa_partners_degree)) / (max(lebanon_dsa_partners_degree) - min(lebanon_dsa_partners_degree)) * (20-15)+15
 V(lebanon_dsa_partners)$label.cex  <- (lebanon_dsa_partners_degree - min(lebanon_dsa_partners_degree)) / (max(lebanon_dsa_partners_degree) - min(lebanon_dsa_partners_degree)) * (0.75-0.5)+0.5
 V(lebanon_dsa_partners)$cex <- V(lebanon_dsa_partners)$label.cex
 
@@ -693,7 +693,7 @@ E(jordan_dsa_partners)$margin <- 1
 #Calculate the degree for each node
 jordan_dsa_partners_degree <- degree(jordan_dsa_partners, mode="all")
 #Fix dynamic size-based parameters
-V(jordan_dsa_partners)$size <- (jordan_dsa_partners_degree - min(jordan_dsa_partners_degree)) / (max(jordan_dsa_partners_degree) - min(jordan_dsa_partners_degree)) * (20-10)+10
+V(jordan_dsa_partners)$size <- (jordan_dsa_partners_degree - min(jordan_dsa_partners_degree)) / (max(jordan_dsa_partners_degree) - min(jordan_dsa_partners_degree)) * (20-15)+15
 V(jordan_dsa_partners)$label.cex  <- (jordan_dsa_partners_degree - min(jordan_dsa_partners_degree)) / (max(jordan_dsa_partners_degree) - min(jordan_dsa_partners_degree)) * (0.75-0.5)+0.5
 V(jordan_dsa_partners)$cex <- V(jordan_dsa_partners)$label.cex
 
