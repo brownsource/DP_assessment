@@ -129,7 +129,7 @@ nodes$Replied_or_nominated <- rep(c("Replied"), nrow(kobo_survey_import))
 
 nodes$Filter.Sector.Basic_needs <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.basic_needs
 nodes$Filter.Sector.Education <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.education
-nodes$Filter.Sector.Food_security <- kobo_survey_import$GROUP_organizational_ties.Organizational_connections_Sectors.food_security
+nodes$Filter.Sector.Food_security <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.food_security
 nodes$Filter.Sector.Health <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.health
 nodes$Filter.Sector.Livelihoods <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.livelihoods
 nodes$Filter.Sector.Protection <- kobo_survey_import$GROUP_organization_details.organizational_connections_sectors.protection
@@ -234,7 +234,7 @@ maxmultiplier <-  ifelse(temp$tempController1 == "", NA, {
 nodes$Format.Data_protection.Onward_sharing_measures <- result/maxmultiplier              
 
 # Calculate final DATA PROTECTION RATING value
-nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,15:19], na.rm=TRUE)
+nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,16:20], na.rm=TRUE)
 
 ################################################################################
 ############################ PREPARE THE EDGES DATA ############################
@@ -243,11 +243,11 @@ nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,15:19], n
 # Create a data.frame to save the cleaned EDGE values to
 edges <- data.frame(matrix(ncol = 5))
 column_names_edges <- c(
-  "Source", 
-  "Target",
-  "Label",
-  "Type",
-  "Weight"
+  "from", 
+  "to",
+  "label",
+  "type",
+  "weight"
 )
 colnames(edges) <- column_names_edges
 edges <- edges[-c(1), ]
@@ -271,7 +271,7 @@ for (i in 1:nrow(kobo_survey_import)){
     # Create a vector with the source organisation
     SourceOrgs <- rep(as.character(kobo_survey_import[i,4]), length(TargetOrgs))
     # Create a vector with target organisations and some other fixed variables
-    EdgeFrame <-data.frame(Source = SourceOrgs, Target = TargetOrgs, Label = NA, Type = "Directed", Weight = 1)
+    EdgeFrame <-data.frame(from = SourceOrgs, to = TargetOrgs, label = NA, type = "Directed", weight = 1)
     # Append the values to the edges table
     edges <- rbind(edges, EdgeFrame)
   }
@@ -296,16 +296,21 @@ for (i in 1:nrow(kobo_survey_import)){
     # Create a vector with the source organisation
     TargetOrgs <- rep(as.character(kobo_survey_import[i,4]), length(SourceOrgs))
     # Create a vector with target organisations and some other fixed variables
-    EdgeFrame <-data.frame(Source = as.character(SourceOrgs), Target = TargetOrgs, Label = NA, Type = "Directed", Weight = 1)
+    EdgeFrame <-data.frame(from = as.character(SourceOrgs), to = TargetOrgs, label = NA, type = "Directed", weight = 1)
     # Append the values to the edges table
     edges <- rbind(edges, EdgeFrame)
   }
 }
 rm(EdgeFrame)
 
+################################################################################
+############################## ADD EXTRA TO NODES ##############################
+################################################################################
+
+
 # ADD orgainsitions to the node table that were listed in the edge extraction
 # Create a list of all of the nominated nodes
-nominated_nodes <- data.frame(Id = unique(edges$Source))
+nominated_nodes <- data.frame(Id = unique(edges$from))
 nominated_nodes <- cbind(nominated_nodes, 
                          Label = partner_list$Acronym[match(nominated_nodes$Id,partner_list$ID)], 
                          Organisation_name = partner_list$Name[match(nominated_nodes$Id,partner_list$ID)],
@@ -315,10 +320,11 @@ nominated_nodes <- cbind(nominated_nodes,
 # Remove the nodes that already exist in the nodes table
 nominated_nodes <- nominated_nodes[!nominated_nodes$Id %in% nodes$Id,]
 # Append remaining nominated nodes to the nodes table
-nominated_nodes$Id <- as.integer(nominated_nodes$Id)
+nodes$Id <- as.character(nodes$Id)
+nominated_nodes$Id <- as.character(nominated_nodes$Id)
 nodes <- bind_rows(nodes, nominated_nodes)
 
-nominated_nodes <- data.frame(Id = unique(edges$Target))
+nominated_nodes <- data.frame(Id = unique(edges$to))
 nominated_nodes <- cbind(nominated_nodes, 
                          Label = partner_list$Acronym[match(nominated_nodes$Id,partner_list$ID)], 
                          Organisation_name = partner_list$Name[match(nominated_nodes$Id,partner_list$ID)],
@@ -328,14 +334,15 @@ nominated_nodes <- cbind(nominated_nodes,
 # Remove the nodes that already exist in the nodes table
 nominated_nodes <- nominated_nodes[!nominated_nodes$Id %in% nodes$Id,]
 # Append remaining nominated nodes to the nodes table
-nominated_nodes$Id <- as.integer(nominated_nodes$Id)
+nodes$Id <- as.character(nodes$Id)
+nominated_nodes$Id <- as.character(nominated_nodes$Id)
 nodes <- bind_rows(nodes, nominated_nodes) 
   
 ################################################################################
 ################################ OUTPUT TO CSV #################################
 ################################################################################
 
-write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_comments.csv", sep=""))
-write.csv(nodes, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""))
-write.csv(edges, file = paste("../not_shared/output/", country, "/", country, "_edges.csv", sep=""))
+write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_comments.csv", sep=""), row.names=FALSE)
+write.csv(nodes, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""), row.names=FALSE)
+write.csv(edges, file = paste("../not_shared/output/", country, "/", country, "_edges.csv", sep=""), row.names=FALSE)
 
