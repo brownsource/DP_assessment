@@ -1,9 +1,17 @@
 #### CREATES THE REQUIRED NODE AND EDGE TABLES FOR NETWORK ANALYSIS
 #### YOU NEED TO SPECIFY THE COUNTRY AT THE START OF THE SCRIPT
 
+### BEFORE YOU BEGIN:
+## Input file should be checked for:
+## 1. If the source organisation is new and not in the partner_list
+## 2. If the downstream organisations are new and not in the partner_list
+## 3. If the upstream organisations are new and not in the partner_list
+## In all instances the partner_list should be updated
+
+
 ### INPUT: 
 ## not_shared/data/[COUNTRY]/kobo_import_DPA_[COUNTRY].csv
-## not_shared/data/jordan_partner+list.csv
+## not_shared/data/jordan_partner_list.csv
 
 ### OUTPUT:
 ## not_shared/output/[COUNTRY]/[COUNTRY]_nodes.csv
@@ -14,17 +22,13 @@
 rm(list = ls()) # Remove all the objects we created so far.
 
 ### INSTALL PACKAGES IF REQUIRED
-if(!require(igraph)){
-  install.packages("igraph")
-}
 if(!require(dplyr)){
   install.packages("dplyr")
 }
 
 ### INSTALL LIBRARIES IF REQUIRED
 ### NEED TO CHANGE THIS BLOCK OF CODE
-library(igraph)
-library(plyr)
+library(dplyr)
 
 ### SELECT WHICH COUNTRY
 country <- "jordan"
@@ -43,12 +47,43 @@ partner_list <- read.csv(paste("../not_shared/data/", country, "/", country, "_p
                          header = TRUE, 
                          stringsAsFactors = FALSE)
 
-### CREATE AND EXPORT THE NODES DATA
-nodes <- data.frame(matrix(ncol = 34, nrow = nrow(kobo_survey_import)))
+################################################################################
+########################## PREPARE THE COMMENTS DATA ###########################
+################################################################################
+
+# Create a data.frame
+comments <- data.frame(matrix(ncol = 8, nrow = nrow(kobo_survey_import)))
+comments_labels <- c(
+  "id",
+  "label",
+  "organisation_name",
+  "participant_name",
+  "email_address",
+  "summary_request",
+  "comment",
+  "own_case_management")
+colnames(comments) <- comments_labels
+rm(comments_labels)
+# import data (matching some with the partner_list table)
+comments$id <- kobo_survey_import$GROUP_organization_details.organizational_connections_source_organisation
+comments$label <- partner_list$Acronym[match(comments$id,partner_list$ID)]
+comments$organisation_name <- partner_list$Name[match(comments$id,partner_list$ID)]
+comments$participant_name <- kobo_survey_import$GROUP_participation_agreement.participation_name
+comments$email_address <- kobo_survey_import$GROUP_participation_agreement.participation_email
+comments$summary_request <- kobo_survey_import$GROUP_participation_agreement.summary_request_yn
+comments$comment <- kobo_survey_import$GROUP_comments.comments
+comments$own_case_management <- kobo_survey_import$GROUP_organization_details.diagnostics_own_case_management_name
+
+################################################################################
+############################ PREPARE THE NODES DATA ############################
+################################################################################
+
+nodes <- data.frame(matrix(ncol = 35, nrow = nrow(kobo_survey_import)))
 nodes_labels <- c(
   "Id",
   "Label",
   "Organisation_name",
+  "Type",
   "Replied_or_nominated",
   "Filter.Sector.Basic_needs",
   "Filter.Sector.Education",
@@ -88,6 +123,7 @@ nodes$Id <- kobo_survey_import$GROUP_organization_details.organizational_connect
 
 nodes$Label <- partner_list$Acronym[match(nodes$Id,partner_list$ID)]
 nodes$Organisation_name <- partner_list$Name[match(nodes$Id,partner_list$ID)]
+nodes$Type <- partner_list$Type[match(nodes$Id,partner_list$ID)]
 
 nodes$Replied_or_nominated <- rep(c("Replied"), nrow(kobo_survey_import))
 
@@ -150,10 +186,8 @@ nodes$Format.Data_protection.Technical_measures <- ((
 ) / 20
 
 # Calculate RIGHTS OF DATA SUBJECT MEASURES values
-
-# Perform calculation
 nodes$Format.Data_protection.Rights_of_data_subject_measures <- 
-  ifelse (kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_data_collection_yn == 0, "",
+  ifelse (kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_data_collection_yn == 0, NA,
           ((as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_informed) +
             as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_consent) +
             as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_opportunity_to_object) +
@@ -200,34 +234,108 @@ maxmultiplier <-  ifelse(temp$tempController1 == "", NA, {
 nodes$Format.Data_protection.Onward_sharing_measures <- result/maxmultiplier              
 
 # Calculate final DATA PROTECTION RATING value
-# nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,15:19], na.rm=TRUE)
+nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,15:19], na.rm=TRUE)
 
-# output to CSV
-write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""))
+################################################################################
+############################ PREPARE THE EDGES DATA ############################
+################################################################################
 
-### CREATE AND EXPORT THE COMMENTS DATA
-# Create a data.frame
-comments <- data.frame(matrix(ncol = 8, nrow = nrow(kobo_survey_import)))
-comments_labels <- c(
-  "id",
-  "label",
-  "organisation_name",
-  "participant_name",
-  "email_address",
-  "summary_request",
-  "comment",
-  "own_case_management")
-colnames(comments) <- comments_labels
-rm(comments_labels)
-# import data (matching some with the partner_list table)
-comments$id <- kobo_survey_import$GROUP_organization_details.organizational_connections_source_organisation
-comments$label <- partner_list$Acronym[match(comments$id,partner_list$ID)]
-comments$organisation_name <- partner_list$Name[match(comments$id,partner_list$ID)]
-comments$participant_name <- kobo_survey_import$GROUP_participation_agreement.participation_name
-comments$email_address <- kobo_survey_import$GROUP_participation_agreement.participation_email
-comments$summary_request <- kobo_survey_import$GROUP_participation_agreement.summary_request_yn
-comments$comment <- kobo_survey_import$GROUP_comments.comments
-comments$own_case_management <- kobo_survey_import$GROUP_organization_details.diagnostics_own_case_management_name
-# output to CSV
+# Create a data.frame to save the cleaned EDGE values to
+edges <- data.frame(matrix(ncol = 5))
+column_names_edges <- c(
+  "Source", 
+  "Target",
+  "Label",
+  "Type",
+  "Weight"
+)
+colnames(edges) <- column_names_edges
+edges <- edges[-c(1), ]
+# Remove the column name vector
+rm(column_names_edges)
+
+# IDENTIFY DOWNSTREAM ORGANISATION CONNECTIONS
+# Repeat for each row in kobo_import
+for (i in 1:nrow(kobo_survey_import)){
+  
+  # If the value of the cell is TRUE
+  TargetOrgs <- c(ifelse (kobo_survey_import[i,57:147] == "True",
+                          # Extract the Organisation ID from the header
+                          as.numeric(substr(c(colnames(kobo_survey_import[57:147])), 76, 78)), #would like to use nchar to get the string length
+                          # Or write NA
+                          NA))
+  # Remove the NA
+  TargetOrgs <- TargetOrgs[!is.na(TargetOrgs)]
+  # If thelength of TargetOrgs is NOT 0 then Transpose the Organisatonis to the Edges table with the Source ID as the current Row's Organisation
+  if(length(TargetOrgs) != 0) { 
+    # Create a vector with the source organisation
+    SourceOrgs <- rep(as.character(kobo_survey_import[i,4]), length(TargetOrgs))
+    # Create a vector with target organisations and some other fixed variables
+    EdgeFrame <-data.frame(Source = SourceOrgs, Target = TargetOrgs, Label = NA, Type = "Directed", Weight = 1)
+    # Append the values to the edges table
+    edges <- rbind(edges, EdgeFrame)
+  }
+}
+rm(EdgeFrame)
+
+# IDENTIFY UPSTREAM ORGANISATION CONNECTIONS
+
+# Repeat for each row in kobo_import
+for (i in 1:nrow(kobo_survey_import)){
+  
+  # If the value of the cell is TRUE
+  SourceOrgs <- c(ifelse (kobo_survey_import[i,151:241] == "True",
+                          # Extract the Organisation ID from the header
+                          as.numeric(substr(c(colnames(kobo_survey_import[57:147])), 76, 78)),
+                          # Or write NA
+                          NA))
+  # Remove the NA
+  SourceOrgs <- SourceOrgs[!is.na(SourceOrgs)]
+  # If thelength of TargetOrgs is NOT 0 then Transpose the Organisatonis to the Edges table with the Source ID as the current Row's Organisation
+  if(length(SourceOrgs) != 0) { 
+    # Create a vector with the source organisation
+    TargetOrgs <- rep(as.character(kobo_survey_import[i,4]), length(SourceOrgs))
+    # Create a vector with target organisations and some other fixed variables
+    EdgeFrame <-data.frame(Source = as.character(SourceOrgs), Target = TargetOrgs, Label = NA, Type = "Directed", Weight = 1)
+    # Append the values to the edges table
+    edges <- rbind(edges, EdgeFrame)
+  }
+}
+rm(EdgeFrame)
+
+# ADD orgainsitions to the node table that were listed in the edge extraction
+# Create a list of all of the nominated nodes
+nominated_nodes <- data.frame(Id = unique(edges$Source))
+nominated_nodes <- cbind(nominated_nodes, 
+                         Label = partner_list$Acronym[match(nominated_nodes$Id,partner_list$ID)], 
+                         Organisation_name = partner_list$Name[match(nominated_nodes$Id,partner_list$ID)],
+                         Type = partner_list$Type[match(nominated_nodes$Id,partner_list$ID)],
+                         Replied_or_nominated = "Nominated")
+
+# Remove the nodes that already exist in the nodes table
+nominated_nodes <- nominated_nodes[!nominated_nodes$Id %in% nodes$Id,]
+# Append remaining nominated nodes to the nodes table
+nominated_nodes$Id <- as.integer(nominated_nodes$Id)
+nodes <- bind_rows(nodes, nominated_nodes)
+
+nominated_nodes <- data.frame(Id = unique(edges$Target))
+nominated_nodes <- cbind(nominated_nodes, 
+                         Label = partner_list$Acronym[match(nominated_nodes$Id,partner_list$ID)], 
+                         Organisation_name = partner_list$Name[match(nominated_nodes$Id,partner_list$ID)],
+                         Type = partner_list$Type[match(nominated_nodes$Id,partner_list$ID)],
+                         Replied_or_nominated = "Nominated")
+
+# Remove the nodes that already exist in the nodes table
+nominated_nodes <- nominated_nodes[!nominated_nodes$Id %in% nodes$Id,]
+# Append remaining nominated nodes to the nodes table
+nominated_nodes$Id <- as.integer(nominated_nodes$Id)
+nodes <- bind_rows(nodes, nominated_nodes) 
+  
+################################################################################
+################################ OUTPUT TO CSV #################################
+################################################################################
+
 write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_comments.csv", sep=""))
+write.csv(nodes, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""))
+write.csv(edges, file = paste("../not_shared/output/", country, "/", country, "_edges.csv", sep=""))
 
