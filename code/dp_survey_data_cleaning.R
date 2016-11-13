@@ -48,7 +48,7 @@ partner_list <- read.csv(paste("../not_shared/data/", country, "/", country, "_p
                          stringsAsFactors = FALSE)
 
 ################################################################################
-########################## PREPARE THE COMMENTS DATA ###########################
+### PREPARE THE COMMENTS DATA ##################################################
 ################################################################################
 
 # Create a data.frame
@@ -75,10 +75,10 @@ comments$comment <- kobo_survey_import$GROUP_comments.comments
 comments$own_case_management <- kobo_survey_import$GROUP_organization_details.diagnostics_own_case_management_name
 
 ################################################################################
-############################ PREPARE THE NODES DATA ############################
+### PREPARE THE NODES DATA #####################################################
 ################################################################################
 
-nodes <- data.frame(matrix(ncol = 35, nrow = nrow(kobo_survey_import)))
+nodes <- data.frame(matrix(ncol = 46, nrow = nrow(kobo_survey_import)))
 nodes_labels <- c(
   "Id",
   "Label",
@@ -101,21 +101,32 @@ nodes_labels <- c(
   "Format.Data_protection.Rights_of_data_subject_measures",
   "Format.Data_protection.Onward_sharing_measures",
   "Format.Data_protection.Data_protection_rating",
-  "Format.Satisfaction",
-  "Format.Own_case_management",
-  "Format.Frequency",
-  "Format.Transfer_method.Printed_material",
-  "Format.Transfer_method.Unencrypted_via_email_USB",
-  "Format.Transfer_method.Encrypted_via_email_USB",
-  "Format.Transfer_method.FTP",
-  "Format.Transfer_method.Secure_FTP",
-  "Format.Transfer_method.Direct_access_through_web_interface",
-  "Format.Transfer_method.API",
-  "Format.Agree_with_statement.Happy_with_format",
-  "Format.Agree_with_statement.Happy_with_turnaround",
-  "Format.Agree_with_statement.Happy_with_workflow",
-  "Format.Agree_with_statement.Happy_with_accuracy"
-)
+  "Diagnostic.Satisfaction",
+  "Diagnostic.Own_case_management",
+  "Diagnostic.Frequency",
+  "Diagnostic.Transfer_method.Printed_material",
+  "Diagnostic.Transfer_method.Unencrypted_via_email_USB",
+  "Diagnostic.Transfer_method.Encrypted_via_email_USB",
+  "Diagnostic.Transfer_method.FTP",
+  "Diagnostic.Transfer_method.Secure_FTP",
+  "Diagnostic.Transfer_method.Direct_access_through_web_interface",
+  "Diagnostic.Transfer_method.API",
+  "Diagnostic.Agree_with_statement.Happy_with_format",
+  "Diagnostic.Agree_with_statement.Happy_with_turnaround",
+  "Diagnostic.Agree_with_statement.Happy_with_workflow",
+  "Diagnostic.Agree_with_statement.Happy_with_accuracy",
+  "Diagnostic.Dont_follow_policy.Lack_of_awareness_of_policy_existance",
+  "Diagnostic.Dont_follow_policy.Lack_of_awareness_of_policy_details",
+  "Diagnostic.Dont_follow_policy.Not_enough_time_to_follow_protocol",
+  "Diagnostic.Dont_follow_policy.Not_enough_resource_to_follow_protocol",
+  "Diagnostic.Dont_follow_policy.Valid_and_exceptional_circumstances_but_without_approval",
+  "Diagnostic.Do_follow_policy.Awareness_of_policy_existance",
+  "Diagnostic.Do_follow_policy.Awareness_of_policy_details",
+  "Diagnostic.Do_follow_policy.Enough_time_to_follow_protocol",
+  "Diagnostic.Do_follow_policy.Enough_resource_to_follow_protocol",
+  "Diagnostic.Do_follow_policy.Valid_and_exceptional_circumstances_but_with_approval",
+  "Diagnostic.Do_follow_policy.Normative_behaviour"
+  )
 colnames(nodes) <- nodes_labels
 rm(nodes_labels)
 # import data (matching some with the partner_list table)
@@ -139,21 +150,34 @@ nodes$Filter.Sector.WASH <- kobo_survey_import$GROUP_organization_details.organi
 nodes$Filter.Location.camp_based <- kobo_survey_import$GROUP_organization_details.organizational_connections_location.camp_based
 nodes$Filter.Location.non_camp_based <- kobo_survey_import$GROUP_organization_details.organizational_connections_location.non_camp_based
 
-nodes$Format.Satisfaction <- kobo_survey_import$GROUP_diagnostics.diagnostics_satisfaction
-nodes$Format.Own_case_management <- kobo_survey_import$GROUP_organization_details.diagnostics_own_case_management
-nodes$Format.Frequency <- kobo_survey_import$GROUP_diagnostics.diagnostics_frequency
+nodes$Diagnostic.Satisfaction <- kobo_survey_import$GROUP_diagnostics.diagnostics_satisfaction
+nodes$Diagnostic.Own_case_management <- kobo_survey_import$GROUP_organization_details.diagnostics_own_case_management
+nodes$Diagnostic.Frequency <- kobo_survey_import$GROUP_diagnostics.diagnostics_frequency
 
-nodes$Format.Transfer_method.Printed_material <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.printed_material
-nodes$Format.Transfer_method.Unencrypted_via_email_USB <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.unencrypted
-nodes$Format.Transfer_method.Encrypted_via_email_USB <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.encrypted
-nodes$Format.Transfer_method.FTP <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.ftp
-nodes$Format.Transfer_method.Secure_FTP <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.secure_ftp
-nodes$Format.Transfer_method.Direct_access_through_web_interface <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.direct_access
-nodes$Format.Transfer_method.API <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.api
-nodes$Format.Agree_with_statement.Happy_with_format <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_format
-nodes$Format.Agree_with_statement.Happy_with_turnaround <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_timely
-nodes$Format.Agree_with_statement.Happy_with_workflow <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_workflow
-nodes$Format.Agree_with_statement.Happy_with_accuracy <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_accurate
+nodes$Diagnostic.Transfer_method.Printed_material <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.printed_material
+nodes$Diagnostic.Transfer_method.Unencrypted_via_email_USB <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.unencrypted
+nodes$Diagnostic.Transfer_method.Encrypted_via_email_USB <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.encrypted
+nodes$Diagnostic.Transfer_method.FTP <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.ftp
+nodes$Diagnostic.Transfer_method.Secure_FTP <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.secure_ftp
+nodes$Diagnostic.Transfer_method.Direct_access_through_web_interface <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.direct_access
+nodes$Diagnostic.Transfer_method.API <- kobo_survey_import$GROUP_diagnostics.diagnostics_transfer_method.api
+nodes$Diagnostic.Agree_with_statement.Happy_with_format <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_format
+nodes$Diagnostic.Agree_with_statement.Happy_with_turnaround <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_timely
+nodes$Diagnostic.Agree_with_statement.Happy_with_workflow <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_workflow
+nodes$Diagnostic.Agree_with_statement.Happy_with_accuracy <- kobo_survey_import$GROUP_diagnostics.SUBGROUP_diagnostics_statements.diagnostics_statements_accurate
+
+nodes$Diagnostic.Dont_follow_policy.Lack_of_awareness_of_policy_existance <- kobo_survey_import$GROUP_diagnostics.diagnostics_dont_follow_policy.Lack_of_awareness_of_policy_existance
+nodes$Diagnostic.Dont_follow_policy.Lack_of_awareness_of_policy_details <- kobo_survey_import$GROUP_diagnostics.diagnostics_dont_follow_policy.Lack_of_awareness_of_policy_details
+nodes$Diagnostic.Dont_follow_policy.Not_enough_time_to_follow_protocol <- kobo_survey_import$GROUP_diagnostics.diagnostics_dont_follow_policy.Not_enough_time_to_follow_protocol
+nodes$Diagnostic.Dont_follow_policy.Not_enough_resource_to_follow_protocol <- kobo_survey_import$GROUP_diagnostics.diagnostics_dont_follow_policy.Not_enough_resource_to_follow_protocol
+nodes$Diagnostic.Dont_follow_policy.Valid_and_exceptional_circumstances_but_without_approval <- kobo_survey_import$GROUP_diagnostics.diagnostics_dont_follow_policy.Valid_and_exceptional_circumstances_but_without_approval
+nodes$Diagnostic.Do_follow_policy.Awareness_of_policy_existance <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Awareness_of_policy_existance
+nodes$Diagnostic.Do_follow_policy.Awareness_of_policy_details <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Awareness_of_policy_details
+nodes$Diagnostic.Do_follow_policy.Enough_time_to_follow_protocol <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Enough_time_to_follow_protocol
+nodes$Diagnostic.Do_follow_policy.Enough_resource_to_follow_protocol <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Enough_resource_to_follow_protocol
+nodes$Diagnostic.Do_follow_policy.Valid_and_exceptional_circumstances_but_with_approval <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Valid_and_exceptional_circumstances_but_with_approval
+nodes$Diagnostic.Do_follow_policy.Normative_behaviour <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Normative_behaviour
+
 
 # Calculate ORGANISATIONAL MEASURES values
 nodes$Format.Data_protection.Organisational_measures <- ((
@@ -237,7 +261,7 @@ nodes$Format.Data_protection.Onward_sharing_measures <- result/maxmultiplier
 nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,16:20], na.rm=TRUE)
 
 ################################################################################
-############################ PREPARE THE EDGES DATA ############################
+### PREPARE THE EDGES DATA #####################################################
 ################################################################################
 
 # Create a data.frame to save the cleaned EDGE values to
@@ -304,7 +328,7 @@ for (i in 1:nrow(kobo_survey_import)){
 rm(EdgeFrame)
 
 ################################################################################
-############################## ADD EXTRA TO NODES ##############################
+### ADD EXTRA TO NODES #########################################################
 ################################################################################
 
 
@@ -339,10 +363,15 @@ nominated_nodes$Id <- as.character(nominated_nodes$Id)
 nodes <- bind_rows(nodes, nominated_nodes) 
   
 ################################################################################
-################################ OUTPUT TO CSV #################################
+### OUTPUT TO CSV ##############################################################
 ################################################################################
 
 write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_comments.csv", sep=""), row.names=FALSE)
 write.csv(nodes, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""), row.names=FALSE)
 write.csv(edges, file = paste("../not_shared/output/", country, "/", country, "_edges.csv", sep=""), row.names=FALSE)
 
+################################################################################
+### HOUSEKEEPING ###############################################################
+################################################################################
+
+rm(list = ls()) # Remove all the objects we created so far.

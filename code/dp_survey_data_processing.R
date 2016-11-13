@@ -37,10 +37,14 @@ library("ForceAtlas2")
 library(plyr)
 library(ggplot2)
 library(png)
+library(reshape2) # to "melt" your dataset
+library(scales) # it has a "rescale" function which is needed in heatmaps 
+library(RColorBrewer) # for convenience of heatmap colors, it reflects your mood sometimes
 
 ###Load external functions
 source("code/function_multiplot.R")
 source("code/function_ggplot_bar_chart.R")
+source("code/function_ggplot_bar_chart_by_organisation.R")
 
 ####################################################################################################################
 ### LOAD THE EXTERNAL DATA #########################################################################################
@@ -176,7 +180,7 @@ write.csv(network_statistics_measures, file = paste("../not_shared/output/", cou
 create_statistics_for_sectors <- function(x, y) {
     temp <- as_data_frame(x, what = "vertices")
     network_statistics_organisations <- temp
-    network_statistics_organisations <- cbind(network_statistics_organisations, Degree <- degree(x))
+    network_statistics_organisations <- cbind(network_statistics_organisations, Degree = degree(x))
     network_statistics_organisations <- cbind(network_statistics_organisations, Centrality_out = degree(x, mode="out"))
     network_statistics_organisations <- cbind(network_statistics_organisations, Centrality_in = degree(x, mode="in"))
     network_statistics_organisations <- cbind(network_statistics_organisations, Centrality_all = degree(x, mode="all"))
@@ -210,102 +214,34 @@ create_statistics_for_sectors(survey_network_wash,"_network_statistics_organisat
 folder_name <- paste("../not_shared/output/",country,"/data_protection/measures/", sep="")
 dir.create(dirname(folder_name), showWarnings = FALSE)
 
-chart_export <- draw_bar_chart("Organisational data protection measures by sector", "data_protection_organisational_measures_by_sector",
+p1 <- draw_bar_chart("Organisational data protection measures by sector", "data_protection_organisational_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_OM,
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_OM)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_OM, FALSE, "measures", p1)
 
-chart_export <- draw_bar_chart("Physical data protection measures by sector", "data_protection_physical_measures_by_sector", 
+p2 <- draw_bar_chart("Physical data protection measures by sector", "data_protection_physical_measures_by_sector", 
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_PM, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_PM)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_PM, FALSE, "measures", p2)
 
-chart_export <- draw_bar_chart("Technical data protection measures by sector", "data_protection_technical_measures_by_sector",
+p3 <- draw_bar_chart("Technical data protection measures by sector", "data_protection_technical_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_TM, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_TM)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_TM, FALSE, "measures", p3)
 
-chart_export <- draw_bar_chart("Rights of data subject data protection measures by sector", "data_protection_rights_of_data_subject_measures_by_sector",
+p4 <- draw_bar_chart("Rights of data subject data protection measures by sector", "data_protection_rights_of_data_subject_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_RDS, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_RDS)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_RDS, FALSE, "measures", p4)
 
-chart_export <- draw_bar_chart("Onward data sharing data protection measures by sector", "data_protection_onward_data_sharing_measures_by_sector",
+p5 <- draw_bar_chart("Onward data sharing data protection measures by sector", "data_protection_onward_data_sharing_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_ODS, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_ODS)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_ODS, FALSE, "measures", p5)
 
-chart_export <- draw_bar_chart("Average data protection measures by sector", "data_protection_average_total_measures_by sector",
+p6 <- draw_bar_chart("Average data protection measures by sector", "data_protection_average_total_measures_by sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_Total, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_Total)
+                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_Total, FALSE, "measures", p6)
 
-
-p1 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_Total)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_Total,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Average data protection") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_Total, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-p2 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_OM)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_OM,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Average organisational measures") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_OM, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-p3 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_PM)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_PM,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Physical measures") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_PM, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-p4 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_TM)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_TM,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Technical measures") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_TM, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-p5 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_RDS)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_RDS,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Rights of data subject") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_RDS, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-p6 <- ggplot(data=network_statistics_sectors, aes(x=network_statistics_sectors$Graph, y=network_statistics_sectors$Avg_DP_ODS)) + 
-      geom_bar(stat="identity", fill="#0072B6") +
-      geom_text(aes(label=round(network_statistics_sectors$Avg_DP_ODS,2)), vjust=1.6, color="white", size=3.5) + 
-      theme(legend.position="none", axis.title.x = element_blank()) + 
-      ggtitle("Onward data sharing") + 
-      ylab("Data protection")+
-      geom_hline(yintercept = mean(network_statistics_sectors$Avg_DP_ODS, na.rm = TRUE), color="grey30", size=1.5, alpha=0.5, linetype="dashed") +
-      coord_cartesian(ylim=c(0,1)) +
-      theme(panel.grid.major = element_blank(), panel.grid.minor = element_blank(),
-      panel.background = element_blank(), axis.line = element_line(colour = "black"),axis.ticks.x=element_blank(),axis.ticks.y=element_blank())
-
-multiplot(p1, p2, p3, p4, p5, p6, cols=2)
-
+#### /// THE MULTIPLOT ISN'T WORKING
 File <- paste("../not_shared/output/",country,"/data_protection/measures/contact_sheet_data_protection.png", sep="")
 dir.create(dirname(File), showWarnings = FALSE)
-ggsave(File, multiplot(p1, p2, p3, p4, p5, p6, cols=2), device = "png", scale = 1, width = 10, height = 6, units = "in", dpi = 300) 
+ggsave(File, multiplot(chart_1, chart_2, chart_3, chart_4, chart_5, chart_6, cols=2), device = "png", scale = 1, width = 10, height = 6, units = "in", dpi = 300) 
 
 ################################################################################
 ############################ DP MEASURE LEVEL ##################################
@@ -314,98 +250,125 @@ ggsave(File, multiplot(p1, p2, p3, p4, p5, p6, cols=2), device = "png", scale = 
 folder_name <- paste("../not_shared/output/",country,"/data_protection/sectors/", sep="")
 dir.create(dirname(folder_name), showWarnings = FALSE)
 
-chart_export <- draw_bar_chart("All sectors data protection ratings by measure",                 #title
-                                        "All_sectors_data_protection_ratings_by_measure",             #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$all),                      #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$all),                       #yaxis
-                                        FALSE                               
-)
+s1 <- draw_bar_chart("All sectors data protection ratings by measure", "All_sectors_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$all),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$all), FALSE, "sectors", s1)
 
-chart_export <- draw_measures_bar_chart("Basic Needs data protection ratings by measure",                 #title
-                                        "Basic_Needs_data_protection_ratings_by_measure",             #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$basic_needs),              #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$basic_needs)               #yaxis
-)
+s2 <- draw_bar_chart("Basic Needs data protection ratings by measure", "Basic_Needs_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$basic_needs),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$basic_needs), FALSE, "sectors", s2)
 
-chart_export <- draw_measures_bar_chart("Education data protection ratings by measure",                   #title
-                                        "Education_data_protection_ratings_by_measure",               #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$education),                #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$education)                 #yaxis
-)
+s3 <- draw_bar_chart("Education data protection ratings by measure", "Education_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$education),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$education), FALSE, "sectors", s3)
 
-chart_export <- draw_measures_bar_chart("Food security data protection ratings by measure",               #title
-                                        "Food_security_data_protection_ratings_by_measure",           #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$food_security),            #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$food_security)             #yaxis
-)
+s4 <- draw_bar_chart("Food security data protection ratings by measure", "Food_security_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$food_security),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$food_security), FALSE, "sectors", s4)
 
-chart_export <- draw_measures_bar_chart("Health data protection ratings by measure",                      #title
-                                        "Health_data_protection_ratings_by_measure",                  #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$health),                   #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$health)                    #yaxis
-)
+s5 <- draw_bar_chart("Health data protection ratings by measure", "Health_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$health),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$health), FALSE, "sectors", s5)
 
-chart_export <- draw_measures_bar_chart("Livelihoods data protection ratings by measure",                 #title
-                                        "Livelihoods_data_protection_ratings_by_measure",             #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$livelihoods),              #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$livelihoods)               #yaxis
-)
+s6 <- draw_bar_chart("Livelihoods data protection ratings by measure", "Livelihoods_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$livelihoods),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$livelihoods), FALSE, "sectors", s6)
 
-chart_export <- draw_measures_bar_chart("Protection data protection ratings by measure",                  #title
-                                        "Protection_data_protection_ratings_by_measure",              #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$protection),               #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$protection)                #yaxis
-)
+s7 <- draw_bar_chart("Protection data protection ratings by measure", "Protection_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$protection),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$protection), FALSE, "sectors", s7)
 
-chart_export <- draw_measures_bar_chart("Shelter data protection ratings by measure",                     #title
-                                        "Shelter_data_protection_ratings_by_measure",                 #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$shelter),                  #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$shelter)                   #yaxis
-)
+s8 <- draw_bar_chart("Shelter data protection ratings by measure", "Shelter_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$shelter),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$shelter), FALSE, "sectors", s8)
 
-chart_export <- draw_measures_bar_chart("WASH data protection ratings by measure",                 #title
-                                        "WASH_data_protection_ratings_by_measure",             #filename
-                                        "Data protection rating",                                         #ylabel 
-                                        "Data protection measure",                                        #xlabel
-                                        network_statistics_measures,                                      #chart_data
-                                        as.numeric(network_statistics_measures$wash),                      #label_value
-                                        row.names(network_statistics_measures),                           #xaxis
-                                        as.numeric(network_statistics_measures$wash)                       #yaxis
-)
+s8 <- draw_bar_chart("WASH data protection ratings by measure", "WASH_data_protection_ratings_by_measure",
+                     "Data protection rating", "Data protection measure", network_statistics_measures, as.numeric(network_statistics_measures$wash),
+                     row.names(network_statistics_measures), as.numeric(network_statistics_measures$wash), FALSE, "sectors", s8)
 
 ################################################################################
-########################### ORGANISATION LEVEL #################################
+### ORGANISATION LEVEL #########################################################
 ################################################################################
 
+### CENTRALITY & DEGREE MEASURES ###############################################################
+
+folder_name <- paste("../not_shared/output/",country,"/data_protection/organisations/", sep="")
+dir.create(dirname(folder_name), showWarnings = FALSE)
+
+organisation_table <- data.frame(read.csv(paste("../not_shared/output/", country, "/stats/", country, "_network_statistics_organisations_all.csv", sep="")), stringsAsFactors = FALSE)
+
+o1 <- draw_long_bar_chart("Degree by organisation", "Degree_by_organisation",
+                          "Degree", "Organisation", organisation_table, as.numeric(organisation_table$Degree),
+                          as.character(organisation_table$Label), as.numeric(organisation_table$Degree), FALSE, "organisations", o1)
+
+o2 <- draw_long_bar_chart("Degree by organisation", "Degree_by_organisation_anon",
+                          "Degree", "Organisation", organisation_table, as.numeric(organisation_table$Degree),
+                          as.character(organisation_table$Label), as.numeric(organisation_table$Degree), FALSE, "organisations", o2)
+
+o3 <- draw_long_bar_chart("Closeness cenrality by organisation", "Closeness_centrality_by_organisation_anon",
+                          "Centrality", "Organisation", organisation_table, as.numeric(organisation_table$Closeness_centrality),
+                          as.character(organisation_table$Label), as.numeric(organisation_table$Closeness_centrality), FALSE, "organisations", o3)
+
+o4 <- draw_long_bar_chart("Betweenness cenrality by organisation", "Betweenness_centrality_by_organisation_anon",
+                          "Centrality", "Organisation", organisation_table, as.numeric(organisation_table$Betweenness_centrality),
+                          as.character(organisation_table$Label), as.numeric(organisation_table$Betweenness_centrality), FALSE, "organisations", o4)
+
+o5 <- draw_long_bar_chart("Eigenvector cenrality by organisation", "Eigenvector_centrality_by_organisation_anon",
+                          "Centrality", "Organisation", organisation_table, as.numeric(organisation_table$Eigenvector_centrality),
+                          as.character(organisation_table$Label), as.numeric(organisation_table$Eigenvector_centrality), FALSE, "organisations", o5)
+
+### DATA PROTECTION RATINGS ###############################################################
+
+replied_organisation_table <- subset(organisation_table, Replied_or_nominated=="Replied")
+
+o6 <- draw_long_bar_chart("Organisational measures by organisation", "Organisational_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Organisational_measures),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Organisational_measures), FALSE, "organisations", o6)
+
+o7 <- draw_long_bar_chart("Physical measures by organisation", "Physical_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Physical_measures),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Physical_measures), FALSE, "organisations", o7)
+
+o8 <- draw_long_bar_chart("Technical measures by organisation", "Technical_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Technical_measures),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Technical_measures), FALSE, "organisations", o8)
+
+o9 <- draw_long_bar_chart("Rights of data subject measures by organisation", "Rights_of_data_subject_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Rights_of_data_subject_measures),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Rights_of_data_subject_measures), FALSE, "organisations", o9)
+
+o10 <- draw_long_bar_chart("Onward data sharing measures by organisation", "Onward_data_sharing_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Onward_sharing_measures),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Onward_sharing_measures), FALSE, "organisations", o10)
+
+o11 <- draw_long_bar_chart("Average data protection measures by organisation", "Average_data_protection_measures_by_organisation_anon",
+                          "Data protection", "Organisation", replied_organisation_table, as.numeric(replied_organisation_table$Format.Data_protection.Data_protection_rating),
+                          as.character(replied_organisation_table$Label), 
+                          as.numeric(replied_organisation_table$Format.Data_protection.Data_protection_rating), FALSE, "organisations", o11)
+
+### HEATMAP MATRIX ###############################################################
+
+heatmap <- read.csv(paste("../not_shared/output/",country, "/stats/", country, "_network_statistics_dpmeasures.csv",sep=""))
+head(heatmap)
+heatmap$X <- with(heatmap, reorder(X))
+heatmap.m <- melt(heatmap)
+heatmap.m <- ddply(heatmap.m, .(variable), transform,rescale = rescale(value))
+h1 <- ggplot(heatmap.m, aes(variable, X)) + 
+  geom_tile(aes(fill = rescale),
+            colour = "white") +  
+  scale_fill_gradient2(low="#cd0000", 
+                       mid="#f2f6c3",
+                       high="#006400",
+                       midpoint=0.5)
+h1
+
+################################################################################
+### HOUSEKEEPING ###############################################################
+################################################################################
+
+rm(list = ls()) # Remove all the objects we created so far.
