@@ -78,7 +78,7 @@ comments$own_case_management <- kobo_survey_import$GROUP_organization_details.di
 ### PREPARE THE NODES DATA #####################################################
 ################################################################################
 
-nodes <- data.frame(matrix(ncol = 46, nrow = nrow(kobo_survey_import)))
+nodes <- data.frame(matrix(ncol = 58, nrow = nrow(kobo_survey_import)))
 nodes_labels <- c(
   "Id",
   "Label",
@@ -95,11 +95,23 @@ nodes_labels <- c(
   "Filter.Sector.WASH",
   "Filter.Location.camp_based",
   "Filter.Location.non_camp_based",
+  "Format.Data_protection.Organisational_measures_policy",
+  "Format.Data_protection.Organisational_measures_adherence",
   "Format.Data_protection.Organisational_measures",
+  "Format.Data_protection.Physical_measures_policy",
+  "Format.Data_protection.Physical_measures_adherence",
   "Format.Data_protection.Physical_measures",
+  "Format.Data_protection.Technical_measures_policy",
+  "Format.Data_protection.Technical_measures_adherence",
   "Format.Data_protection.Technical_measures",
+  "Format.Data_protection.Rights_of_data_subject_measures_policy",
+  "Format.Data_protection.Rights_of_data_subject_measures_adherence",
   "Format.Data_protection.Rights_of_data_subject_measures",
+  "Format.Data_protection.Onward_sharing_measures_policy",
+  "Format.Data_protection.Onward_sharing_measures_adherence",
   "Format.Data_protection.Onward_sharing_measures",
+  "Format.Data_protection.Data_protection_policy",
+  "Format.Data_protection.Data_protection_adherence",
   "Format.Data_protection.Data_protection_rating",
   "Diagnostic.Satisfaction",
   "Diagnostic.Own_case_management",
@@ -178,8 +190,16 @@ nodes$Diagnostic.Do_follow_policy.Enough_resource_to_follow_protocol <- kobo_sur
 nodes$Diagnostic.Do_follow_policy.Valid_and_exceptional_circumstances_but_with_approval <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Valid_and_exceptional_circumstances_but_with_approval
 nodes$Diagnostic.Do_follow_policy.Normative_behaviour <- kobo_survey_import$GROUP_diagnostics.diagnostics_do_follow_policy.Normative_behaviour
 
-
 # Calculate ORGANISATIONAL MEASURES values
+nodes$Format.Data_protection.Organisational_measures_policy <- ((
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_focal_point +
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_have_policy +
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_have_code_of_conduct +
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_data_breach_process)
+) / 4
+
+nodes$Format.Data_protection.Organisational_measures_adherence <- kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_staff_rating / 5
+
 nodes$Format.Data_protection.Organisational_measures <- ((
   kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_focal_point +
   kobo_survey_import$GROUP_data_protection.SUBGROUP_organizational_measures.dp_om_have_policy +
@@ -189,6 +209,18 @@ nodes$Format.Data_protection.Organisational_measures <- ((
 ) / 20
 
 # Calculate PHYSICAL MEASURES values
+nodes$Format.Data_protection.Physical_measures_policy <- ((
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_stored_safe + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_offices_locked + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_staff_reminder + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_safe_paper_waste + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_visitors + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_usb + 
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_filing_cabinets)
+) / 7
+
+nodes$Format.Data_protection.Physical_measures_adherence <- kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_staff_rating / 5
+
 nodes$Format.Data_protection.Physical_measures <- ((
   kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_stored_safe + 
   kobo_survey_import$GROUP_data_protection.SUBGROUP_physical_measures.dp_pm_offices_locked + 
@@ -201,6 +233,15 @@ nodes$Format.Data_protection.Physical_measures <- ((
 ) / 35
 
 # Calculate TECHNICAL MEASURES values
+nodes$Format.Data_protection.Technical_measures_policy <- ((
+  kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_passwords +
+    kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_tiered_access +
+    kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_backups +
+    kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_personal_account_awareness)
+) / 4
+
+nodes$Format.Data_protection.Technical_measures_adherence <- kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_staff_rating / 5
+
 nodes$Format.Data_protection.Technical_measures <- ((
   kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_passwords +
   kobo_survey_import$GROUP_data_protection.SUBGROUP_technical_measures.dp_tm_tiered_access +
@@ -210,13 +251,27 @@ nodes$Format.Data_protection.Technical_measures <- ((
 ) / 20
 
 # Calculate RIGHTS OF DATA SUBJECT MEASURES values
-nodes$Format.Data_protection.Rights_of_data_subject_measures <- 
+nodes$Format.Data_protection.Rights_of_data_subject_measures_policy <- 
   ifelse (kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_data_collection_yn == 0, NA,
           ((as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_informed) +
             as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_consent) +
             as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_opportunity_to_object) +
-            as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_aware_of_rights)) *
-            as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_staff_rating)
+            as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_aware_of_rights))
+          ) / 4
+  )
+
+nodes$Format.Data_protection.Rights_of_data_subject_measures_adherence <- 
+  ifelse (kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_data_collection_yn == 0, NA,
+          as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_staff_rating) / 5
+  )
+
+nodes$Format.Data_protection.Rights_of_data_subject_measures <- 
+  ifelse (kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_data_collection_yn == 0, NA,
+          ((as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_informed) +
+              as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_consent) +
+              as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_opportunity_to_object) +
+              as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_aware_of_rights)) *
+             as.numeric(kobo_survey_import$GROUP_data_protection.SUBGROUP_rights_of_data_subjects.dp_rds_staff_rating)
           ) /20
   )
 
@@ -247,18 +302,43 @@ result <- ifelse(temp$tempController1 == "", NA, {
                   }))),
               na.rm = TRUE)
           })
-result <- result * as.numeric(as.character(temp$tempMultiplier))
+result_policy <- result
+result_total <- result * as.numeric(as.character(temp$tempMultiplier))
 
 maxmultiplier <-  ifelse(temp$tempController1 == "", NA, {
                 2+
                 ifelse(temp$tempController2 == 1,1,0)+
                 ifelse(temp$tempController3 == 1,2,0)
-              })*5
+              })
 
-nodes$Format.Data_protection.Onward_sharing_measures <- result/maxmultiplier              
+multiplier_policy <- maxmultiplier
+multiplier_total <- maxmultiplier * 5
+
+nodes$Format.Data_protection.Onward_sharing_measures_policy <- result_policy/multiplier_policy
+nodes$Format.Data_protection.Onward_sharing_measures_adherence <- as.numeric(as.character(temp$tempMultiplier)) / 5
+nodes$Format.Data_protection.Onward_sharing_measures <- result_total/multiplier_total              
 
 # Calculate final DATA PROTECTION RATING value
-nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[,16:20], na.rm=TRUE)
+nodes$Format.Data_protection.Data_protection_policy <- rowMeans(nodes[c("Format.Data_protection.Organisational_measures_policy",
+                                                                        "Format.Data_protection.Physical_measures_policy",
+                                                                        "Format.Data_protection.Technical_measures_policy",
+                                                                        "Format.Data_protection.Rights_of_data_subject_measures_policy",
+                                                                        "Format.Data_protection.Onward_sharing_measures_policy")], 
+                                                                na.rm=TRUE)
+
+nodes$Format.Data_protection.Data_protection_adherence <- rowMeans(nodes[c("Format.Data_protection.Organisational_measures_adherence",
+                                                                           "Format.Data_protection.Physical_measures_adherence",
+                                                                           "Format.Data_protection.Technical_measures_adherence",
+                                                                           "Format.Data_protection.Rights_of_data_subject_measures_adherence",
+                                                                           "Format.Data_protection.Onward_sharing_measures_adherence")], 
+                                                                   na.rm=TRUE)
+
+nodes$Format.Data_protection.Data_protection_rating <- rowMeans(nodes[c("Format.Data_protection.Organisational_measures",
+                                                                        "Format.Data_protection.Physical_measures",
+                                                                        "Format.Data_protection.Technical_measures",
+                                                                        "Format.Data_protection.Rights_of_data_subject_measures",
+                                                                        "Format.Data_protection.Onward_sharing_measures")], 
+                                                                na.rm=TRUE)
 
 ################################################################################
 ### PREPARE THE EDGES DATA #####################################################

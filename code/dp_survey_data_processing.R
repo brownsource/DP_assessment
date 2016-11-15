@@ -93,7 +93,7 @@ network_names <- c("survey_network",
 
 ### create sector level table ######################################################################################
 
-network_statistics_sectors <- data.frame(Graph=NA,
+network_statistics_sectors <- data.frame(sectors=NA,
                                          Count_nodes=NA,
                                          Count_edges=NA,
                                          Density=NA,
@@ -114,13 +114,13 @@ network_statistics_sectors <- data.frame(Graph=NA,
                                          Avg_DP_TM=NA, 
                                          Avg_DP_RDS=NA, 
                                          Avg_DP_ODS=NA, 
-                                         Avg_DP_Total=NA) 
+                                         avg_dp_total=NA) 
 network_statistics_sectors <- network_statistics_sectors[-c(1), ]
 
 ## function to populate table x= graph y=sectorname
 populate_sector_table <- function(x,y) {
   table_row <- data.frame(
-              Graph = y, #set Graph name
+              sectors = y, #set Graph name
               Count_nodes = vcount(x), #Count graph nodes
               Count_edges = ecount(x), #Count graph edges
               Density = graph.density(x, loops = FALSE), # Density
@@ -141,7 +141,7 @@ populate_sector_table <- function(x,y) {
               Avg_DP_TM = mean(V(x)$Format.Data_protection.Technical_measures, na.rm=TRUE),
               Avg_DP_RDS = mean(V(x)$Format.Data_protection.Rights_of_data_subject_measures, na.rm=TRUE),
               Avg_DP_ODS = mean(V(x)$Format.Data_protection.Onward_sharing_measures, na.rm=TRUE),
-              Avg_DP_Total = mean(V(x)$Format.Data_protection.Data_protection_rating, na.rm=TRUE)
+              avg_dp_total = mean(V(x)$Format.Data_protection.Data_protection_rating, na.rm=TRUE)
   )
 }
 
@@ -164,7 +164,7 @@ write.csv(network_statistics_sectors, file = paste("../not_shared/output/", coun
 ### create data protection level table #############################################################################
 
 ## Transpose the table and keep just values needed
-names <- network_statistics_sectors$Graph
+names <- network_statistics_sectors$sectors
 network_statistics_measures <- as.data.frame(t(network_statistics_sectors), stringsAsFactors = FALSE)
 colnames(network_statistics_measures) <- names
 network_statistics_measures <- network_statistics_measures[-1:-12,]
@@ -211,32 +211,43 @@ create_statistics_for_sectors(survey_network_wash,"_network_statistics_organisat
 ### CREATE SUMMARY CHARTS ##########################################################################################
 ####################################################################################################################
 
+# TRYING NEW CLEANER FUNCTION
+# draw_bar_chart(filename = "all_bar_sectors_by_dp_rating_unsorted.png",
+#                      folder = "../not_shared/output/jordan/data_protection/measures/",
+#                      title = "Sectors by DP rating",
+#                      data = network_statistics_sectors,
+#                      xaxis = "sectors",
+#                      yaxis = "avg_dp_total",
+#                      sort = TRUE,
+#                      anonymise = FALSE
+# )
+
 folder_name <- paste("../not_shared/output/",country,"/data_protection/measures/", sep="")
 dir.create(dirname(folder_name), showWarnings = FALSE)
 
 p1 <- draw_bar_chart("Organisational data protection measures by sector", "data_protection_organisational_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_OM,
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_OM, FALSE, "measures", p1)
+                               network_statistics_sectors$sectors, network_statistics_sectors$Avg_DP_OM, FALSE, "measures", p1)
 
 p2 <- draw_bar_chart("Physical data protection measures by sector", "data_protection_physical_measures_by_sector", 
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_PM, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_PM, FALSE, "measures", p2)
+                               network_statistics_sectors$sectors, network_statistics_sectors$Avg_DP_PM, FALSE, "measures", p2)
 
 p3 <- draw_bar_chart("Technical data protection measures by sector", "data_protection_technical_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_TM, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_TM, FALSE, "measures", p3)
+                               network_statistics_sectors$sectors, network_statistics_sectors$Avg_DP_TM, FALSE, "measures", p3)
 
 p4 <- draw_bar_chart("Rights of data subject data protection measures by sector", "data_protection_rights_of_data_subject_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_RDS, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_RDS, FALSE, "measures", p4)
+                               network_statistics_sectors$sectors, network_statistics_sectors$Avg_DP_RDS, FALSE, "measures", p4)
 
 p5 <- draw_bar_chart("Onward data sharing data protection measures by sector", "data_protection_onward_data_sharing_measures_by_sector",
                                "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_ODS, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_ODS, FALSE, "measures", p5)
+                               network_statistics_sectors$sectors, network_statistics_sectors$Avg_DP_ODS, FALSE, "measures", p5)
 
 p6 <- draw_bar_chart("Average data protection measures by sector", "data_protection_average_total_measures_by sector",
-                               "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$Avg_DP_Total, 
-                               network_statistics_sectors$Graph, network_statistics_sectors$Avg_DP_Total, FALSE, "measures", p6)
+                               "Data protection rating", "Sector", network_statistics_sectors, network_statistics_sectors$avg_dp_total, 
+                               network_statistics_sectors$sectors, network_statistics_sectors$avg_dp_total, FALSE, "measures", p6)
 
 #### /// THE MULTIPLOT ISN'T WORKING
 File <- paste("../not_shared/output/",country,"/data_protection/measures/contact_sheet_data_protection.png", sep="")
@@ -353,18 +364,27 @@ o11 <- draw_long_bar_chart("Average data protection measures by organisation", "
 
 ### HEATMAP MATRIX ###############################################################
 
+# Load data for heat map
 heatmap <- read.csv(paste("../not_shared/output/",country, "/stats/", country, "_network_statistics_dpmeasures.csv",sep=""))
-head(heatmap)
-heatmap$X <- with(heatmap, reorder(X))
+row.names(heatmap) <- heatmap$X
+
+#heatmap$X <- with(heatmap, reorder(X))
 heatmap.m <- melt(heatmap)
-heatmap.m <- ddply(heatmap.m, .(variable), transform,rescale = rescale(value))
-h1 <- ggplot(heatmap.m, aes(variable, X)) + 
-  geom_tile(aes(fill = rescale),
-            colour = "white") +  
-  scale_fill_gradient2(low="#cd0000", 
-                       mid="#f2f6c3",
-                       high="#006400",
-                       midpoint=0.5)
+heatmap.m <- ddply(heatmap.m, .(variable), 
+                   transform,
+                   rescale = rescale(value))
+
+h1 <- ggplot(heatmap.m, 
+             aes(variable, 
+                 X)) + 
+      
+      geom_tile(aes(fill = rescale),
+                colour = "white") +  
+  
+      scale_fill_gradient2(low="#cd0000",
+                           mid="#f2f6c3",
+                           high="#006400",
+                           midpoint=0.5)
 h1
 
 ################################################################################
