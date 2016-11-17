@@ -445,10 +445,17 @@ nodes <- bind_rows(nodes, nominated_nodes)
 ################################################################################
 ### OUTPUT TO CSV ##############################################################
 ################################################################################
+file_name <- paste("../not_shared/output/", country, "/inputs/", country, "_comments.csv", sep="")
+dir.create(dirname(file_name), showWarnings = FALSE)
+write.csv(comments, file = file_name, row.names=FALSE)
 
-write.csv(comments, file = paste("../not_shared/output/", country, "/", country, "_comments.csv", sep=""), row.names=FALSE)
-write.csv(nodes, file = paste("../not_shared/output/", country, "/", country, "_nodes.csv", sep=""), row.names=FALSE)
-write.csv(edges, file = paste("../not_shared/output/", country, "/", country, "_edges.csv", sep=""), row.names=FALSE)
+file_name <- paste("../not_shared/output/", country, "/inputs/", country, "_nodes.csv", sep="")
+dir.create(dirname(file_name), showWarnings = FALSE)
+write.csv(nodes, file = file_name, row.names=FALSE)
+
+file_name <- paste("../not_shared/output/", country, "/inputs/", country, "_edges.csv", sep="")
+dir.create(dirname(file_name), showWarnings = FALSE)
+write.csv(edges, file = file_name, row.names=FALSE)
 
 ################################################################################
 ### HOUSEKEEPING ###############################################################
